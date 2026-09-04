@@ -41,6 +41,7 @@
     btn.addEventListener("click", function () {
       const open = nav.classList.toggle("open");
       btn.setAttribute("aria-expanded", String(open));
+      track(open ? "Opened Mobile Menu" : "Closed Mobile Menu");
     });
   }
 
@@ -109,6 +110,7 @@
     document.getElementById("gate-agree").addEventListener("click", function () {
       sessionStorage.setItem("lawtie-gate", "accepted");
       gate.hidden = true;
+      track("Accepted Disclaimer Notice");
     });
   }
 
@@ -135,6 +137,7 @@
       const message = String(data.get("message") || "").trim();
       if (!name || !purpose || !message) {
         status.textContent = "Please complete the required fields.";
+        track("Enquiry Form Incomplete");
         return;
       }
       const text = [
@@ -145,7 +148,50 @@
       ].join("\n");
       const url = "https://wa.me/" + site.contact.whatsapp + "?text=" + encodeURIComponent(text);
       status.textContent = "Opening WhatsApp so you may send the enquiry yourself.";
+      track("Submitted Academic Enquiry", { enquiry_purpose: purpose });
       window.open(url, "_blank", "noopener");
+    });
+  }
+
+  const pageViews = {
+    home: "Viewed Home",
+    chambers: "Viewed Chambers",
+    "law-tie": "Viewed Law Tie Classroom",
+    programmes: "Viewed Academic Programmes",
+    counselling: "Viewed Career Counselling",
+    contact: "Viewed Enquiry",
+    compliance: "Viewed Professional Notices",
+    "not-found": "Viewed Page Not Found"
+  };
+
+  function track(name, properties) {
+    if (typeof window.trackEvent === "function") {
+      window.trackEvent(name, Object.assign({ page_name: pageViews[page] || page || "Unknown page" }, properties));
+    }
+  }
+
+  function labelForLink(el) {
+    const href = el.getAttribute("href") || "";
+    const text = (el.textContent || "").replace(/\s+/g, " ").trim();
+    if (el.classList.contains("brand")) return "Clicked Brand Logo";
+    if (href.indexOf("youtube.com") !== -1) return "Clicked YouTube Channel";
+    if (href.indexOf("instagram.com") !== -1) return "Clicked Instagram";
+    if (href.indexOf("linkedin.com") !== -1) return "Clicked LinkedIn";
+    if (href.indexOf("tel:") === 0) return "Clicked Telephone Number";
+    if (href.indexOf("wa.me") !== -1) return "Opened WhatsApp Enquiry";
+    if (href.indexOf("barcouncilofindia") !== -1) return "Left Website From Disclaimer";
+    if (el.closest("#nav-links")) return "Clicked Navigation " + text;
+    if (el.closest(".site-footer")) return "Clicked Footer " + text;
+    if (text) return "Clicked " + text;
+    return "Clicked Link";
+  }
+
+  function bindCustomClicks() {
+    document.addEventListener("click", function (event) {
+      const el = event.target.closest("a, button");
+      if (!el || el.id === "gate-agree" || el.classList.contains("menu-btn")) return;
+      if (el.closest("form") && el.getAttribute("type") === "submit") return;
+      track(labelForLink(el), { link_url: el.getAttribute("href") || "" });
     });
   }
 
@@ -154,4 +200,7 @@
   renderGate();
   fillPlaceholders();
   bindContactForm();
+  bindCustomClicks();
+  track(pageViews[page] || "Viewed Page");
 })();
+
