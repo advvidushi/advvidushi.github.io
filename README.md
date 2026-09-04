@@ -12,15 +12,3 @@ Brand colours: black, ivory, and gold.
 ## Edit the published particulars
 
 Update `assets/js/config.js` with enrolment number, enrolment date, e-mail, and any change of address or telephone.
-
-## Local preview
-
-```bash
-python3 -m http.server 8080
-```
-
-Then open `http://127.0.0.1:8080`.
-
-## Deploy
-
-Push `main` to `https://github.com/advvidushi/advvidushi.github.io`. GitHub Pages will serve the root of the branch.
